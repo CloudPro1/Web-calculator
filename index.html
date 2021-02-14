@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Web Calculator</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+
+        <div id="calculator">
+            <table class="tg">
+
+                <tbody>
+
+                    <tr>
+                        <td class="tg-screen" colspan="5">
+                            <div class="screen">
+                                <div id="history"></div>
+                                <div id="display"></div>
+                            </div>
+                        </td>
+                    </tr>
+                
+                <tr>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('7')">7</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('8')">8</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('9')">9</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('divide')">/</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('del')">&larr;</button></td>
+                </tr>
+                <tr>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('4')">4</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('5')">5</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('6')">6</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('multiply')">*</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('clear')">C</button></td>
+                </tr>
+                <tr>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('1')">1</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('2')">2</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('3')">3</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('minus')">-</button></td>
+                    <td class="tg-keypad" rowspan="2"><button type="button" class="equal" onclick = "keyPressed('equal')">=</button></td>
+                </tr>
+                <tr>
+                    <td class="tg-keypad" colspan="2"><button type="button" class="zero" onclick = "keyPressed('0')">0</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('dp')">.</button></td>
+                    <td class="tg-keypad"><button type="button" onclick = "keyPressed('plus')">+</button></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    <script>
+
+        let display = 0;
+        let memory = null;
+        let history = "";
+        let action = null;
+        let dp = false;
+
+        let math = {
+            plus : function (a, b){
+                return a + b;
+            }, 
+
+            minus : function (a, b){
+                return a - b;
+            },
+
+            divide : function (a, b){
+                return a / b;
+            },
+            
+            multiply: function (a, b){
+                return a * b;
+            }
+        };
+
+        function showDisplay(num) {
+            let d = document.getElementById("display");
+            if (String(num).length > 10) {
+                if(String(num).includes("e+")) {
+                    d.innerText = String(Number.parseFloat(`${num}`.split("e+")[0]).toFixed(8) + "e+" + `${num}`.split("e+")[1]) 
+                } else if (String(num).includes("e-")) {
+                    d.innerText = String(Number.parseFloat(`${num}`.split("e+")[0]).toFixed(8) + "e-" + `${num}`.split("e-")[1]) 
+                } else {
+                    // d.innerText = String(Number(num).toExponential());
+                    d.innerText = Number.parseFloat(num).toFixed(8);
+                }
+                
+            } else {
+                d.innerText = String(num)
+            }
+        }
+
+        function parseNumber(n) {
+            if (typeof n === "number") {
+                return n;
+            } else if (typeof n === "string") {
+                if (n == "") {
+                    return 0;
+                } else {
+                    n.replace(" ", "");
+                    n.replace(",", "");
+                    return Number.parseFloat(n);
+                }
+
+                
+            } 
+
+            return "error";
+        }
+
+        function keyPressed(key) {
+            if(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(key)) {
+                
+                if (action && memory == null) {
+                    memory = display;
+                    showDisplay(display);
+                }
+
+                if(dp == true && String(display).length < 11) {
+                    display = parseNumber(`${display}.${key}`);
+                    dp = false;
+                    showDisplay(display);
+                } else if (String(display).length < 11) {
+                    display = parseNumber(`${display}${key}`);
+                    showDisplay(display);
+                }
+                
+     
+            } else if(["divide","plus","minus","multiply"].includes(key)) {
+                action = key;
+            } else if (key == "equal") {
+                if(action) {
+                    if(memory == null) {
+                        memory = display;
+                    }
+
+                    display = math[action](memory, display)
+                    memory = null;
+                    showDisplay(display);
+                }
+            } else if(key == "dp") {            
+                
+                if (action && memory == null) {
+                    memory = display;
+                    display = 0;
+                    showDisplay(display);
+                }                
+                
+                if (dp == false && !String(display).includes(".")) {
+                    dp = true;
+                }
+
+            } else if(key == "clear") {
+                memory =  null;
+                display = 0;
+                history = "";
+                action = null;
+                dp = false;
+                showDisplay(display);
+             
+            } else if(key == "del") {
+
+                if (Math.abs(display) > 0) {
+                    let sign = Math.sign(display);
+                    let number = Math.abs(display);
+                    display = sign * parseNumber(String(number).slice(0, String(number).length-1));
+                    showDisplay(display);
+                } 
+                
+            }
+        }
+
+        showDisplay(display);
+
+        /**
+         * Test cases:
+         * 1) minus six = -6
+         * 2)
+         */
+
+    </script>
+    </body>
+</html>
