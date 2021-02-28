@@ -49,7 +49,7 @@
                 </tbody>
             </table>
         </div>
-
+    
     <script>
 
         let display = 0;
@@ -57,44 +57,71 @@
         let history = "";
         let action = null;
         let dp = false;
+        const maxlen = 11;
 
         let math = {
             plus : function (a, b){
-                return a + b;
+                if (a != null && b != null) {
+                    return a + b;
+                } else {
+                    return "+";
+                }
+                
             }, 
 
             minus : function (a, b){
-                return a - b;
+                if (a != null && b != null) {
+                    return a - b;
+                } else {
+                    return "-";
+                }
             },
 
             divide : function (a, b){
-                return a / b;
+                if (a != null && b != null) {
+                    return a / b;
+                } else {
+                    return "/";
+                }
             },
             
             multiply: function (a, b){
-                return a * b;
+                if (a != null && b != null) {
+                    return a * b;
+                } else {
+                    return "*";
+                }
             }
         };
 
-        function showDisplay(num) {
-            let d = document.getElementById("display");
-            if (String(num).length > 10) {
-                if(String(num).includes("e+")) {
-                    d.innerText = String(Number.parseFloat(`${num}`.split("e+")[0]).toFixed(8) + "e+" + `${num}`.split("e+")[1]) 
-                } else if (String(num).includes("e-")) {
-                    d.innerText = String(Number.parseFloat(`${num}`.split("e+")[0]).toFixed(8) + "e-" + `${num}`.split("e-")[1]) 
-                } else {
-                    // d.innerText = String(Number(num).toExponential());
-                    d.innerText = Number.parseFloat(num).toFixed(8);
-                }
-                
+        function stringify(num) {
+            if (String(num).length < maxlen) {
+                return String(num);
             } else {
-                d.innerText = String(num)
+                if(String(num).includes("e+")) {
+                    return String(Number.parseFloat(`${num}`.split("e+")[0]).toFixed(8) + "e+" + `${num}`.split("e+")[1]) 
+                } else if (String(num).includes("e-")) {
+                    return String(Number.parseFloat(`${num}`.split("e+")[0]).toFixed(8) + "e-" + `${num}`.split("e-")[1]) 
+                } else {
+                    return stringify(Number(num).toExponential());
+                }                
             }
         }
 
+        function showDisplay(num) {
+            let d = document.getElementById("display");
+            d.innerText = stringify(num);
+        }
+
+        function showHistory(str) {
+            let h = document.getElementById("history");
+            h.innerText = str;
+        }
+
         function parseNumber(n) {
-            if (typeof n === "number") {
+            if (n == null) {
+                return 0;
+            } else if (typeof n === "number") {
                 return n;
             } else if (typeof n === "string") {
                 if (n == "") {
@@ -104,8 +131,6 @@
                     n.replace(",", "");
                     return Number.parseFloat(n);
                 }
-
-                
             } 
 
             return "error";
@@ -113,41 +138,46 @@
 
         function keyPressed(key) {
             if(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(key)) {
+                if (String(display).length < maxlen) {
+                    if (dp) {
+                        display = parseNumber(`${parseNumber(display)}.${key}`);
+                        dp = false;
+                    } else {
+                        display = parseNumber(`${parseNumber(display)}${key}`);
+                    }
+                }
                 
-                if (action && memory == null) {
-                    memory = display;
-                    showDisplay(display);
-                }
-
-                if(dp == true && String(display).length < 11) {
-                    display = parseNumber(`${display}.${key}`);
-                    dp = false;
-                    showDisplay(display);
-                } else if (String(display).length < 11) {
-                    display = parseNumber(`${display}${key}`);
-                    showDisplay(display);
-                }
+                showDisplay(display);
                 
      
             } else if(["divide","plus","minus","multiply"].includes(key)) {
                 action = key;
+                memory = display;
+                display = null;
+                history = `${stringify(memory)} ${math[action](null, null)}`;
+                showHistory(history);
+
             } else if (key == "equal") {
                 if(action) {
-                    if(memory == null) {
+                    if (memory == null) {
                         memory = display;
                     }
 
-                    display = math[action](memory, display)
-                    memory = null;
+                    if (display == null) {
+                        display = memory;
+                    }
+
+                    let result = math[action](memory, display);
+                    history = `${stringify(memory)} ${math[action](null, null)} ${stringify(display)} =`;
+                    
+                    memory = display;
+                    display = result;
+                    
                     showDisplay(display);
+                    showHistory(history);
+
                 }
             } else if(key == "dp") {            
-                
-                if (action && memory == null) {
-                    memory = display;
-                    display = 0;
-                    showDisplay(display);
-                }                
                 
                 if (dp == false && !String(display).includes(".")) {
                     dp = true;
@@ -160,6 +190,7 @@
                 action = null;
                 dp = false;
                 showDisplay(display);
+                showHistory(history);
              
             } else if(key == "del") {
 
@@ -174,12 +205,7 @@
         }
 
         showDisplay(display);
-
-        /**
-         * Test cases:
-         * 1) minus six = -6
-         * 2)
-         */
+        showHistory(history);
 
     </script>
     </body>
